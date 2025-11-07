@@ -5,8 +5,8 @@
 
 use super::entry::JournalEntryTr;
 use core::ops::Deref;
-use primitives::{Address, B256, KECCAK_EMPTY, U256};
-use state::{Account, Bytecode};
+use primitives::{Address, B256, KECCAK_EMPTY, StorageKey, U256};
+use state::{Account, Bytecode, EvmStorageSlot};
 use std::vec::Vec;
 
 /// Journaled account contains both mutable account and journal entries.
@@ -153,8 +153,18 @@ impl<'a, ENTRY: JournalEntryTr> JournaledAccount<'a, ENTRY> {
     /// Touches the account in all cases.
     #[inline]
     pub fn set_code_and_hash_slow(&mut self, code: Bytecode) {
-        let code_hash = code.hash_slow();
-        self.set_code(code_hash, code);
+      let code_hash = code.hash_slow();
+      self.set_code(code_hash, code);
+    }
+    
+    /// Sets the storage of the account.
+    ///
+    /// Touches the account in all cases.
+    #[inline]
+    pub fn set_storage(&mut self, key: StorageKey, value: &EvmStorageSlot) {
+        self.touch();
+        self.account.storage.insert(key, value.clone());
+        self.journal_entries.push(ENTRY::storage_changed(self.address, key, value.original_value));
     }
 
     /// Delegates the account to another address (EIP-7702).
