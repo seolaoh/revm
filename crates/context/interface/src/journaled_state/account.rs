@@ -70,11 +70,17 @@ impl<'a, ENTRY: JournalEntryTr> JournaledAccount<'a, ENTRY> {
     /// Touches the account.
     #[inline]
     pub fn touch(&mut self) {
-        if !self.account.status.is_touched() {
-            self.account.mark_touch();
-            self.journal_entries
-                .push(ENTRY::account_touched(self.address));
-        }
+      if !self.account.status.is_touched() {
+        self.account.mark_touch();
+        self.journal_entries
+        .push(ENTRY::account_touched(self.address));
+    }
+  }
+  
+    /// Marks the account as cold.
+    #[inline]
+    pub fn mark_cold(&mut self) {
+        self.account.mark_cold();
     }
 
     /// Sets the balance of the account.
